@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Algoritm Muhandisligi — Test | Student</title>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Roboto', sans-serif;
+  background: #f0f2f5;
+  color: #333;
+  min-height: 100vh;
+}
+
+/* TOPBAR */
+.topbar {
+  background: #1a73b8;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1.5rem;
+  height: 52px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+.topbar-left { display: flex; align-items: center; gap: 12px; }
+.topbar-brand { font-size: 17px; font-weight: 700; letter-spacing: 0.01em; }
+.topbar-right { display: flex; align-items: center; gap: 16px; font-size: 13px; }
+.topbar-user { font-weight: 500; }
+
+/* BREADCRUMB */
+.breadcrumb {
+  background: #fff;
+  border-bottom: 1px solid #dde1e7;
+  padding: 10px 1.5rem;
+  font-size: 13px;
+  color: #888;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.breadcrumb a { color: #1a73b8; text-decoration: none; }
+.breadcrumb-sep { color: #bbb; }
+
+/* LAYOUT */
+.page-wrap {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1.5rem 1.25rem;
+  display: flex;
+  gap: 1.25rem;
+  align-items: flex-start;
+}
+
+/* LEFT — Questions */
+.questions-col {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.q-block {
+  background: #fff;
+  border: 1px solid #dde1e7;
+  border-radius: 6px;
+  overflow: hidden;
+}
+.q-num-row {
+  padding: 12px 16px 6px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.q-topic-badge {
+  font-size: 11px;
+  background: #e8f0fe;
+  color: #1a73b8;
+  border-radius: 3px;
+  padding: 2px 7px;
+  font-weight: 400;
+}
+.q-text {
+  padding: 4px 16px 12px;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.55;
+  color: #222;
+}
+
+.opt {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  width: 100%;
+  text-align: left;
+  padding: 9px 16px;
+  border: none;
+  border-top: 1px solid #f0f2f5;
+  background: #fff;
+  cursor: pointer;
+  font-family: 'Roboto', sans-serif;
+  font-size: 13.5px;
+  color: #333;
+  transition: background 0.15s;
+}
+.opt:hover:not(:disabled) { background: #f5f8ff; }
+.opt:disabled { cursor: default; }
+
+.opt-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #bbb;
+  flex-shrink: 0;
+  margin-top: 5px;
+  transition: background 0.15s;
+}
+
+/* answered states — mimics HEMIS green/red */
+.opt.correct {
+  background: #d4edda;
+  color: #155724;
+}
+.opt.correct .opt-dot { background: #28a745; }
+
+.opt.wrong {
+  background: #f8d7da;
+  color: #721c24;
+}
+.opt.wrong .opt-dot { background: #dc3545; }
+
+.opt.show-correct {
+  background: #d4edda;
+  color: #155724;
+  opacity: 0.75;
+}
+.opt.show-correct .opt-dot { background: #28a745; }
+
+/* checkmark / cross icon in answered rows */
+.opt-icon {
+  font-size: 14px;
+  flex-shrink: 0;
+  margin-top: 1px;
+  display: none;
+}
+.opt.correct .opt-icon,
+.opt.wrong .opt-icon,
+.opt.show-correct .opt-icon { display: inline; }
+.opt.correct .opt-icon::before { content: '✓'; color: #155724; }
+.opt.wrong .opt-icon::before { content: '✗'; color: #721c24; }
+.opt.show-correct .opt-icon::before { content: '✓'; color: #155724; }
+
+/* RIGHT — Natijalar */
+.sidebar {
+  width: 280px;
+  flex-shrink: 0;
+}
+.natija-card {
+  background: #fff;
+  border: 1px solid #dde1e7;
+  border-radius: 6px;
+  overflow: hidden;
+  position: sticky;
+  top: 70px;
+}
+.natija-title {
+  background: #fff;
+  padding: 14px 16px 10px;
+  font-size: 16px;
+  font-weight: 700;
+  border-bottom: 1px solid #eee;
+  color: #333;
+}
+.natija-row {
+  display: flex;
+  align-items: flex-start;
+  padding: 9px 16px;
+  border-bottom: 1px solid #f0f2f5;
+  font-size: 13.5px;
+  gap: 8px;
+}
+.natija-label { font-weight: 700; color: #333; min-width: 90px; flex-shrink: 0; }
+.natija-val { color: #444; }
+.natija-pct { font-size: 22px; font-weight: 700; color: #1a73b8; padding: 12px 16px 4px; }
+.natija-grade { font-size: 13px; color: #555; padding: 0 16px 14px; }
+
+.progress-wrap {
+  height: 6px;
+  background: #e9ecef;
+  margin: 0 16px 14px;
+  border-radius: 3px;
+}
+.progress-fill {
+  height: 100%;
+  background: #1a73b8;
+  border-radius: 3px;
+  transition: width 0.4s;
+}
+
+.restart-btn {
+  display: block;
+  width: calc(100% - 32px);
+  margin: 0 16px 16px;
+  padding: 9px;
+  background: #1a73b8;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  font-size: 13.5px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: 'Roboto', sans-serif;
+  transition: background 0.15s;
+}
+.restart-btn:hover { background: #1558a0; }
+
+/* Score mini-stats */
+.score-row {
+  display: flex;
+  gap: 0;
+  border-top: 1px solid #eee;
+}
+.score-cell {
+  flex: 1;
+  text-align: center;
+  padding: 10px 6px;
+  border-right: 1px solid #eee;
+  font-size: 12px;
+  color: #666;
+}
+.score-cell:last-child { border-right: none; }
+.score-num { font-size: 20px; font-weight: 700; display: block; margin-bottom: 2px; }
+.score-num.g { color: #28a745; }
+.score-num.r { color: #dc3545; }
+.score-num.b { color: #1a73b8; }
+
+@media (max-width: 780px) {
+  .page-wrap { flex-direction: column; }
+  .sidebar { width: 100%; }
+  .natija-card { position: static; }
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-left">
+    <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+      <rect x="2" y="2" width="8" height="8" rx="1.5" fill="rgba(255,255,255,0.9)"/>
+      <rect x="12" y="2" width="8" height="8" rx="1.5" fill="rgba(255,255,255,0.6)"/>
+      <rect x="2" y="12" width="8" height="8" rx="1.5" fill="rgba(255,255,255,0.6)"/>
+      <rect x="12" y="12" width="8" height="8" rx="1.5" fill="rgba(255,255,255,0.9)"/>
+    </svg>
+    <span class="topbar-brand">AlgoTest Student</span>
+  </div>
+  <div class="topbar-right">
+    <span class="topbar-user">Algoritm Muhandisligi</span>
+  </div>
+</div>
+
+<div class="breadcrumb">
+  <a href="#">Bosh sahifa</a>
+  <span class="breadcrumb-sep">/</span>
+  <span>Oraliq nazorat — test</span>
+</div>
+
+<div class="page-wrap">
+  <!-- LEFT: Questions -->
+  <div class="questions-col" id="questions-col"></div>
+
+  <!-- RIGHT: Natijalar -->
+  <div class="sidebar">
+    <div class="natija-card">
+      <div class="natija-title">Natijalar</div>
+
+      <div class="natija-row"><span class="natija-label">Topshiriq</span><span class="natija-val">Oraliq nazorat - test</span></div>
+      <div class="natija-row"><span class="natija-label">Fan</span><span class="natija-val">Algoritm Muhandisligi</span></div>
+      <div class="natija-row"><span class="natija-label">Boshlandi</span><span class="natija-val" id="n-start">—</span></div>
+      <div class="natija-row"><span class="natija-label">Savollar</span><span class="natija-val">20 ta</span></div>
+      <div class="natija-row"><span class="natija-label">Javob</span><span class="natija-val" id="n-answered">0 / 20</span></div>
+
+      <div class="score-row">
+        <div class="score-cell"><span class="score-num g" id="n-correct">0</span>To'g'ri</div>
+        <div class="score-cell"><span class="score-num r" id="n-wrong">0</span>Xato</div>
+        <div class="score-cell"><span class="score-num b" id="n-remain">20</span>Qoldi</div>
+      </div>
+
+      <div class="natija-pct" id="n-pct">0%</div>
+      <div class="natija-grade" id="n-grade">Testni boshlang...</div>
+      <div class="progress-wrap"><div class="progress-fill" id="n-progress" style="width:0%"></div></div>
+      <button class="restart-btn" onclick="restart()">↺ Qaytadan boshlash</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const allQuestions = [
+  { q: "Rekurrentsiya T(n) = 2T(n/2) + O(n) uchun Master teoremasi bo'yicha to'g'ri yechim qaysi?", opts: ["O(n)", "O(n log n)", "O(n²)", "O(log n)"], ans: 1, topic: "Murakkablik" },
+  { q: "AVL daraxtida har qanday tugun uchun ikkita bolalar balandligi farqi nechadan oshmasligi kerak?", opts: ["0", "1", "2", "3"], ans: 1, topic: "Ma'lumotlar strukturasi" },
+  { q: "Floyd-Warshall algoritmi nima uchun ishlatiladi va vaqt murakkabligi qanday?", opts: ["Eng qisqa yo'l, O(V²)", "Barcha juftlik uchun eng qisqa yo'l, O(V³)", "MST topish, O(E log V)", "Topologik saralash, O(V+E)"], ans: 1, topic: "Graf algoritmlari" },
+  { q: "Segment tree da range query va point update uchun vaqt murakkabligi qanday?", opts: ["O(n) va O(1)", "O(log n) va O(log n)", "O(1) va O(n)", "O(n log n) va O(n)"], ans: 1, topic: "Ma'lumotlar strukturasi" },
+  { q: "NP-to'liq muammo uchun qaysi ifoda to'g'ri?", opts: ["Polinomial vaqtda yechiladi", "NP sinfiga kiradi va har qanday NP masalasi unga qisqaradi", "Faqat eksponensial algoritmlar mavjud", "P sinfiga kiradi"], ans: 1, topic: "Murakkablik nazariyasi" },
+  { q: "Tarjan algoritmining asosiy maqsadi nima?", opts: ["Eng qisqa yo'lni topish", "Kuchli bog'liq komponentlarni (SCC) topish", "Minimal o'rning daraxtini topish", "Topologik tartibga solish"], ans: 1, topic: "Graf algoritmlari" },
+  { q: "Amortized tahlilda potential funksiya usuli nima uchun ishlatiladi?", opts: ["Eng yomon holatni aniqlash uchun", "Operatsiyalarning o'rtacha xarajatini struktura holatiga bog'lash uchun", "Eng yaxshi holatni hisoblash uchun", "Rekursiv algoritmlarni tahlil qilish uchun"], ans: 1, topic: "Murakkablik" },
+  { q: "Rabin-Karp algoritmi matn qidiruvda qanday texnikadan foydalanadi?", opts: ["KMP avtomat", "Rolling hash", "Suffix array", "Trie"], ans: 1, topic: "Matn algoritmlari" },
+  { q: "0/1 Knapsack masalasida n ta element va W sig'im uchun DP jadvalining hajmi qanday?", opts: ["O(n)", "O(W)", "O(n·W)", "O(2ⁿ)"], ans: 2, topic: "Dinamik dasturlash" },
+  { q: "Red-Black daraxtida qo'shish operatsiyasidan keyin qanday operatsiyalar amalga oshirilishi mumkin?", opts: ["Faqat rotatsiya", "Faqat qayta bo'yash", "Rotatsiya va qayta bo'yash", "Hech narsa kerak emas"], ans: 2, topic: "Ma'lumotlar strukturasi" },
+  { q: "Longest Common Subsequence (LCS) masalasi uchun DP yechimining vaqt murakkabligi qanday?", opts: ["O(n)", "O(n log n)", "O(n·m)", "O(2ⁿ)"], ans: 2, topic: "Dinamik dasturlash" },
+  { q: "Prim va Kruskal algoritmlarining asosiy farqi nima?", opts: ["Prim tugunlarni, Kruskal qirralarni ketma-ket qo'shadi", "Prim yo'naltirilgan, Kruskal yo'naltirilmagan graflar uchun", "Prim DFS, Kruskal BFS asosida ishlaydi", "Farqi yo'q, ikkalasi ham bir xil natija beradi"], ans: 0, topic: "Graf algoritmlari" },
+  { q: "Strassen algoritmining oddiy matritsa ko'paytirishdan ustunligi nima?", opts: ["O(n³) o'rniga O(n²) murakkablik", "O(n³) o'rniga O(n^2.807) murakkablik", "Xotirani kam ishlatadi", "Parallel hisoblash uchun qulay"], ans: 1, topic: "Bo'lib-tashla" },
+  { q: "Disjoint Set Union (DSU) da path compression va union by rank birgalikda qanday murakkablik beradi?", opts: ["O(log n)", "O(n)", "O(α(n)) — deyarli O(1)", "O(n log n)"], ans: 2, topic: "Ma'lumotlar strukturasi" },
+  { q: "Maxflow masalasida Ford-Fulkerson algoritmining murakkabligi nimaga bog'liq?", opts: ["Faqat tugunlar soniga V", "Qirralar soni E va maksimal oqim qiymati f: O(E·f)", "Faqat qirralar soniga E", "O(V³)"], ans: 1, topic: "Graf algoritmlari" },
+  { q: "Counting Sort nima uchun barcha holatlarda Merge Sort dan tezroq ishlashi mumkin emas?", opts: ["Counting Sort rekursiv emas", "Katta diapazonlarda O(n+k) da k katta bo'lib ketadi", "Counting Sort parallel emas", "Counting Sort xotira ishlatmaydi"], ans: 1, topic: "Saralash" },
+  { q: "Edit Distance (Levenshtein) masalasida DP jadvali nima asosida to'ldiriladi?", opts: ["Faqat almashtirishlar soni", "Insert, delete, replace operatsiyalarining minimal soni", "Faqat o'chirish va qo'shish", "Simvollar chastotasi"], ans: 1, topic: "Dinamik dasturlash" },
+  { q: "Bipartite grafni tekshirishning eng samarali usuli qaysi?", opts: ["DFS/BFS bilan 2-rang berish", "Topologik saralash", "Dijkstra algoritmi", "Floyd-Warshall"], ans: 0, topic: "Graf algoritmlari" },
+  { q: "Fibonacci heap da decrease-key operatsiyasining amortized murakkabligi qanday?", opts: ["O(log n)", "O(n)", "O(1)", "O(n log n)"], ans: 2, topic: "Ma'lumotlar strukturasi" },
+  { q: "KMP algoritmida 'failure function' nima vazifani bajaradi?", opts: ["Matnni saralaydi", "Mos kelmaganida naqsh ichida necha joyga siljish kerakligini ko'rsatadi", "Hash qiymatini hisoblaydi", "Naqshning uzunligini kamaytiradi"], ans: 1, topic: "Matn algoritmlari" },
+  { q: "B-tree da m tartibli daraxtda har bir tugun nechta kalitga ega bo'lishi mumkin (ildiz bundan mustasno)?", opts: ["Faqat 1 ta", "⌈m/2⌉−1 dan m−1 gacha", "m dan 2m gacha", "Cheklanmagan"], ans: 1, topic: "Ma'lumotlar strukturasi" },
+  { q: "Greedy algoritm qachon optimal yechim beradi?", opts: ["Har doim optimal yechim beradi", "Greedy tanlov xususiyati va optimal pastki struktura mavjud bo'lganda", "Faqat saralash masalalarida", "Faqat graflar uchun"], ans: 1, topic: "Greedy" },
+  { q: "Quick Select algoritmi o'rtacha holatda k-chi eng kichik elementni qanday vaqtda topadi?", opts: ["O(n log n)", "O(n²)", "O(n)", "O(log n)"], ans: 2, topic: "Bo'lib-tashla" },
+  { q: "Randomized algoritmda 'Las Vegas' va 'Monte Carlo' orasidagi farq nima?", opts: ["Las Vegas har doim to'g'ri javob, vaqti tasodifiy; Monte Carlo vaqti aniq, natija ehtimoliy", "Monte Carlo har doim tezroq ishlaydi", "Las Vegas faqat graflar uchun ishlaydi", "Farqi yo'q"], ans: 0, topic: "Tasodifiy algoritmlar" },
+  { q: "Sparse Table ma'lumotlar strukturasi qanday so'rovlar uchun O(1) vaqt beradi?", opts: ["Range sum query", "Idempotent funksiyalar uchun range min/max query", "Point update", "Range update"], ans: 1, topic: "Ma'lumotlar strukturasi" },
+  { q: "Topologik saralashda Kahn algoritmi qanday ma'lumotlar strukturasidan foydalanadi?", opts: ["Stack", "Queue va in-degree massivi", "Min-heap", "Hash table"], ans: 1, topic: "Graf algoritmlari" },
+  { q: "Cache-oblivious algoritm nima?", opts: ["Cache o'lchamini bilmasdan ham cache-efficient ishlaydigan algoritm", "Kesh umuman ishlatmaydigan algoritm", "Faqat parallel protsessorlar uchun mo'ljallangan", "Xotirasiz ishlaydi"], ans: 0, topic: "Murakkablik" },
+  { q: "Trie ma'lumotlar strukturasida L uzunlikdagi so'z qidirish uchun vaqt murakkabligi qanday?", opts: ["O(n) — n so'zlar soni", "O(n log n)", "O(L) — faqat so'z uzunligiga bog'liq", "O(n·L)"], ans: 2, topic: "Ma'lumotlar strukturasi" },
+  { q: "Suffix array qurishning eng samarali algoritmining vaqt murakkabligi qanday?", opts: ["O(n²)", "O(n log² n)", "O(n log n)", "O(n)"], ans: 3, topic: "Matn algoritmlari" },
+  { q: "Optimal ikkilik qidiruv daraxti (Optimal BST) masalasini qaysi usul O(n³) da yechadi?", opts: ["Greedy", "Brute force", "Dinamik dasturlash (Knuth algoritmi)", "Divide and Conquer"], ans: 2, topic: "Dinamik dasturlash" }
+];
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+let activeQ = [], answered = [], correct = 0, wrong = 0, startTime = null;
+
+function pad(n) { return String(n).padStart(2,'0'); }
+function fmt(d) {
+  return `${pad(d.getDate())}.${pad(d.getMonth()+1)}.${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+function prepareQuestions() {
+  const shuffledQ = shuffle(allQuestions).slice(0, 20);
+  activeQ = shuffledQ.map(q => {
+    const correctText = q.opts[q.ans];
+    const shuffledOpts = shuffle(q.opts);
+    return { q: q.q, topic: q.topic, opts: shuffledOpts, ans: shuffledOpts.indexOf(correctText) };
+  });
+  answered = new Array(activeQ.length).fill(null);
+  correct = 0; wrong = 0;
+  startTime = new Date();
+  document.getElementById('n-start').textContent = fmt(startTime);
+}
+
+function updateSidebar() {
+  const total = answered.filter(a => a !== null).length;
+  const pct = Math.round(correct / activeQ.length * 100);
+  document.getElementById('n-answered').textContent = total + ' / ' + activeQ.length;
+  document.getElementById('n-correct').textContent = correct;
+  document.getElementById('n-wrong').textContent = wrong;
+  document.getElementById('n-remain').textContent = activeQ.length - total;
+  document.getElementById('n-pct').textContent = pct + '%';
+  document.getElementById('n-progress').style.width = (total / activeQ.length * 100) + '%';
+  let grade = total === 0 ? 'Testni boshlang...' :
+    pct >= 90 ? '🏆 A\'lo — Mukammal!' :
+    pct >= 75 ? '⭐ Yaxshi natija!' :
+    pct >= 50 ? '📚 O\'rtacha natija' : '💡 Ko\'proq mashq qiling';
+  document.getElementById('n-grade').textContent = grade;
+}
+
+function choose(qi, oi) {
+  if (answered[qi] !== null) return;
+  answered[qi] = oi;
+  const q = activeQ[qi];
+  if (oi === q.ans) correct++; else wrong++;
+  for (let i = 0; i < q.opts.length; i++) {
+    const btn = document.getElementById(`opt-${qi}-${i}`);
+    btn.disabled = true;
+    if (i === q.ans && i === oi) btn.className = 'opt correct';
+    else if (i === q.ans) btn.className = 'opt show-correct';
+    else if (i === oi) btn.className = 'opt wrong';
+  }
+  updateSidebar();
+}
+
+function renderAll() {
+  const col = document.getElementById('questions-col');
+  col.innerHTML = '';
+  activeQ.forEach((q, qi) => {
+    const optsHtml = q.opts.map((o, oi) =>
+      `<button class="opt" id="opt-${qi}-${oi}" onclick="choose(${qi},${oi})">
+        <span class="opt-icon"></span>
+        <span class="opt-dot"></span>
+        <span>${o}</span>
+      </button>`
+    ).join('');
+    col.insertAdjacentHTML('beforeend', `
+      <div class="q-block">
+        <div class="q-num-row">
+          <strong>${qi + 1}.</strong>
+          <span class="q-topic-badge">${q.topic}</span>
+        </div>
+        <div class="q-text">${q.q}</div>
+        ${optsHtml}
+      </div>`);
+  });
+}
+
+function restart() {
+  prepareQuestions();
+  renderAll();
+  updateSidebar();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+prepareQuestions();
+renderAll();
+updateSidebar();
+</script>
+</body>
+</html>
